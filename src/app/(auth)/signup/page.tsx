@@ -79,9 +79,16 @@ export default function SignupPage() {
       setIsLoading(true);
       const res = await axiosInstance.post("/auth/signup", values);
 
-      toast.success(
-        res.data?.message || "Account registered successfully! Please log in."
-      );
+      if (values.role === "MENTOR") {
+        toast.success(
+          "Mentor account registered! Your account is pending administrator approval before you can log in.",
+          { duration: 6000 }
+        );
+      } else {
+        toast.success(
+          res.data?.message || "Account registered successfully! Please log in."
+        );
+      }
 
       // Redirect to login page
       router.push("/login");
@@ -176,6 +183,14 @@ export default function SignupPage() {
                     Mentor
                   </button>
                 </div>
+                {selectedRole === "MENTOR" && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                    <span className="font-bold text-amber-600 dark:text-amber-400">ℹ️ Notice:</span>
+                    <span>
+                      Mentor accounts require admin approval before login. Once registered, an administrator will review and activate your account.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Full Name */}

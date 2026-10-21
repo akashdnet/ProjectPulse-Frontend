@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import { decodeToken, setAuthToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -39,10 +39,12 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [accountNotice, setAccountNotice] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -51,6 +53,12 @@ export default function LoginPage() {
       password: "",
     },
   });
+
+  const fillCredentials = (email: string, pass: string) => {
+    setValue("email", email, { shouldValidate: true });
+    setValue("password", pass, { shouldValidate: true });
+    setAccountNotice(null);
+  };
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -78,7 +86,9 @@ export default function LoginPage() {
       toast.success(res.data?.message || "Login successful! Welcome back.");
 
       // Role-based redirection
-      if (role === "STUDENT") {
+      if (role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else if (role === "STUDENT") {
         router.push("/submit");
       } else if (role === "MENTOR") {
         router.push("/dashboard");
@@ -97,17 +107,23 @@ export default function LoginPage() {
         message?: string;
       };
 
-      if (axiosError.response?.status === 401) {
+      const backendMessage = axiosError.response?.data?.message || "";
+
+      if (axiosError.response?.status === 403) {
+        // Pending mentor approval, suspended/blocked, or deactivated
+        setAccountNotice(backendMessage || "Access forbidden. Your account may be pending approval or blocked.");
+        toast.error(backendMessage || "Access forbidden. Your account is not currently active.");
+      } else if (axiosError.response?.status === 401) {
         toast.error(
-          axiosError.response.data?.message || "Invalid credentials. Please verify your email and password."
+          backendMessage || "Invalid credentials. Please verify your email and password."
         );
       } else if (axiosError.response?.status === 404) {
         toast.error(
-          axiosError.response.data?.message || "Account not found. Please register first."
+          backendMessage || "Account not found. Please register first."
         );
       } else {
         const rawMsg =
-          axiosError.response?.data?.message ||
+          backendMessage ||
           (Array.isArray(axiosError.response?.data?.errorDetails)
             ? axiosError.response.data.errorDetails.join(", ")
             : "");
@@ -148,6 +164,17 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
+              {/* Account Status Notice (e.g. Mentor Pending or Blocked) */}
+              {accountNotice && (
+                <div className="rounded-xl p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300 animate-in fade-in duration-200">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <div className="flex-1">
+                    <p className="font-semibold mb-0.5">Account Notice</p>
+                    <p className="leading-relaxed">{accountNotice}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Email field */}
               <div className="space-y-2">
                 <Label htmlFor="email" required>
@@ -233,6 +260,37 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
+
+        {/* Quick Demo Credentials Autofill */}
+        <div className="mt-6 p-4 rounded-xl border border-zinc-200/70 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm">
+          <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            Quick Demo Autofill:
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => fillCredentials("superadmin@admin.com", "adminadmin")}
+              className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60 hover:bg-purple-100 transition-colors cursor-pointer text-center"
+            >
+              👑 Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => fillCredentials("lead_mentor@example.com", "password123")}
+              className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 hover:bg-blue-100 transition-colors cursor-pointer text-center"
+            >
+              💼 Mentor
+            </button>
+            <button
+              type="button"
+              onClick={() => fillCredentials("teststudent_auto@test.com", "password123")}
+              className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 hover:bg-emerald-100 transition-colors cursor-pointer text-center"
+            >
+              🎓 Student
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );

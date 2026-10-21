@@ -35,7 +35,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value;
 
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
-  const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/submit");
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/submit") ||
+    pathname.startsWith("/admin");
 
   // If user has token, decode and validate expiration
   const decoded = token ? decodeJwt(token) : null;
@@ -56,7 +59,9 @@ export function middleware(request: NextRequest) {
 
   // 2. Authenticated user trying to access auth pages (/login, /signup)
   if (isAuthRoute && isValidAuth) {
-    if (role === "STUDENT") {
+    if (role === "ADMIN") {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    } else if (role === "STUDENT") {
       return NextResponse.redirect(new URL("/submit", request.url));
     } else {
       return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -65,6 +70,15 @@ export function middleware(request: NextRequest) {
 
   // 3. Role-Based Route Protection
   if (isValidAuth) {
+    // Admin routes strictly for ADMIN role
+    if (pathname.startsWith("/admin") && role !== "ADMIN") {
+      if (role === "STUDENT") {
+        return NextResponse.redirect(new URL("/submit", request.url));
+      } else {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    }
+
     // Student trying to access mentor dashboard -> redirect to /submit
     if (role === "STUDENT" && pathname.startsWith("/dashboard")) {
       return NextResponse.redirect(new URL("/submit", request.url));
@@ -83,6 +97,7 @@ export const config = {
   matcher: [
     "/submit/:path*",
     "/dashboard/:path*",
+    "/admin/:path*",
     "/login",
     "/signup",
   ],

@@ -7,7 +7,7 @@ export interface StatCardProps {
   title: string;
   value?: number;
   icon: LucideIcon;
-  variant?: "pending" | "approved" | "rejected";
+  variant?: "pending" | "approved" | "rejected" | "purple" | "default";
   isLoading?: boolean;
 }
 
@@ -27,16 +27,26 @@ export function StatCard({
     approved: {
       bg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-900/40",
       accent: "from-emerald-500 to-emerald-600",
-      badge: "Approved",
+      badge: "Active",
     },
     rejected: {
       bg: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200/50 dark:border-rose-900/40",
       accent: "from-rose-500 to-rose-600",
-      badge: "Rejected",
+      badge: "Blocked",
+    },
+    purple: {
+      bg: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-900/40",
+      accent: "from-purple-500 to-purple-600",
+      badge: "Admin",
+    },
+    default: {
+      bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-900/40",
+      accent: "from-blue-500 to-blue-600",
+      badge: "Total",
     },
   };
 
-  const currentStyle = styles[variant];
+  const currentStyle = styles[variant] || styles.default;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 p-5 shadow-sm transition-all hover:shadow-md">

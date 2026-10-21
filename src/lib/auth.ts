@@ -5,7 +5,8 @@ export interface DecodedToken {
   id?: string;
   userId?: string;
   email?: string;
-  role?: "STUDENT" | "MENTOR" | string;
+  role?: "STUDENT" | "MENTOR" | "ADMIN" | string;
+  status?: "PENDING" | "ACTIVE" | "BLOCKED" | string;
   name?: string;
   exp?: number;
   iat?: number;
@@ -69,6 +70,35 @@ export function getCurrentUser(): DecodedToken | null {
 export function getUserRole(): string | null {
   const user = getCurrentUser();
   return user?.role || null;
+}
+
+/**
+ * Checks if current logged in user has ADMIN role
+ */
+export function isAdmin(): boolean {
+  return getUserRole()?.toUpperCase() === "ADMIN";
+}
+
+/**
+ * Checks if current logged in user has MENTOR role
+ */
+export function isMentor(): boolean {
+  return getUserRole()?.toUpperCase() === "MENTOR";
+}
+
+/**
+ * Checks if current logged in user has STUDENT role
+ */
+export function isStudent(): boolean {
+  return getUserRole()?.toUpperCase() === "STUDENT";
+}
+
+/**
+ * Gets the status of the logged in user (e.g. ACTIVE, PENDING, BLOCKED)
+ */
+export function getUserStatus(): string | null {
+  const user = getCurrentUser();
+  return user?.status || null;
 }
 
 /**
