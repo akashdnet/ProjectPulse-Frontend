@@ -123,7 +123,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-zinc-50 via-zinc-100 to-blue-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-blue-950/20">
+    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-linear-to-br from-zinc-50 via-zinc-100 to-blue-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-blue-950/20">
       <div className="w-full max-w-md">
         {/* Branding header */}
         <div className="text-center mb-6">
