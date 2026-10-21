@@ -65,6 +65,7 @@ export function Navbar() {
           )}
 
           <Button
+            id="logout-btn"
             variant="outline"
             size="sm"
             onClick={handleLogout}
